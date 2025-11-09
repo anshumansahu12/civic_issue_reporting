@@ -1,0 +1,22 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Environment variables
+.env
+
+# Uploads or temp data
+static/uploads/
+
+# VS Code settings
+.vscode/
+
+# Logs
+*.log

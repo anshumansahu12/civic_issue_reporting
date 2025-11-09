@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Civic Issue Reporting</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-poppins">
+
+  <!-- Header / Navigation -->
+  <header class="bg-blue-600 text-white shadow">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-4 py-4">
+      <h1 class="text-2xl font-bold mb-2 md:mb-0">Civic Issue Reporting</h1>
+      <nav class="space-x-0 md:space-x-4 flex flex-col md:flex-row items-center gap-2">
+        <a href="/" class="hover:bg-blue-500 px-3 py-2 rounded transition">Home</a>
+        <a href="/your_issues" class="hover:bg-blue-500 px-3 py-2 rounded transition">Your Reported Issues</a>
+        <a href="/track_recent" class="hover:bg-blue-500 px-3 py-2 rounded transition">Track Recent Issues</a>
+        <a href="/solved" class="hover:bg-blue-500 px-3 py-2 rounded transition">Problem Solved</a>
+        <a href="/about" class="hover:bg-blue-500 px-3 py-2 rounded transition">About</a>
+        {% if session.user %}
+          <span class="px-3 py-2">Welcome, {{ session.user }}</span>
+          <a href="/logout" class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded transition">Logout</a>
+        {% else %}
+          <a href="/login" class="bg-white text-blue-600 hover:bg-gray-100 px-3 py-2 rounded transition">Login</a>
+          <a href="/signup" class="bg-green-500 hover:bg-green-600 px-3 py-2 rounded transition">Signup</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-r from-blue-600 to-indigo-500 text-white py-20">
+    <div class="max-w-5xl mx-auto text-center px-4">
+      <h2 class="text-4xl md:text-5xl font-bold mb-4">Report Civic Issues in Your City</h2>
+      <p class="text-lg md:text-xl mb-6">Together, we can make our city cleaner, safer, and smarter.</p>
+      {% if session.user %}
+        <a href="/report" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">Report an Issue</a>
+      {% else %}
+        <a href="/login" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">Login to Report</a>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+      <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+        <h3 class="text-3xl font-bold text-blue-600">{{ total }}</h3>
+        <p class="text-gray-600 mt-2">Total Issues</p>
+      </div>
+      <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+        <h3 class="text-3xl font-bold text-green-600">{{ solved }}</h3>
+        <p class="text-gray-600 mt-2">Solved</p>
+      </div>
+      <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+        <h3 class="text-3xl font-bold text-yellow-600">{{ pending }}</h3>
+        <p class="text-gray-600 mt-2">Pending</p>
+      </div>
+      <div class="bg-white shadow-lg rounded-lg p-6 text-center hover:shadow-xl transition">
+        <h3 class="text-3xl font-bold text-purple-600">{{ avg_time }}</h3>
+        <p class="text-gray-600 mt-2">Avg. Resolution Time</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent Issues Section -->
+  <section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Recent Reported Issues</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- Example Issue Card -->
+        <div class="bg-gray-50 rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+          <img src="https://via.placeholder.com/400x200" alt="Issue" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-lg text-gray-800">Pothole on Main Road</h3>
+            <p class="text-gray-600 mt-1">New Delhi - Reported 2 days ago</p>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+          <img src="https://via.placeholder.com/400x200" alt="Issue" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-lg text-gray-800">Garbage Accumulation</h3>
+            <p class="text-gray-600 mt-1">Mumbai - Reported 1 day ago</p>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+          <img src="https://via.placeholder.com/400x200" alt="Issue" class="w-full h-48 object-cover">
+          <div class="p-4">
+            <h3 class="font-semibold text-lg text-gray-800">Streetlight Not Working</h3>
+            <p class="text-gray-600 mt-1">Bangalore - Reported 3 days ago</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download App Section -->
+  <section class="bg-indigo-600 text-white py-16">
+    <div class="max-w-5xl mx-auto text-center px-4">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4">Get the App Now</h2>
+      <p class="text-lg md:text-xl mb-6">Available on both Android and iOS platforms for easy reporting.</p>
+      <div class="flex flex-col md:flex-row justify-center items-center gap-4">
+        <a href="#" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">Download for Android</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-gray-300 py-10">
+    <div class="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div>
+        <h4 class="text-white font-bold mb-4">Civic Issue Reporting</h4>
+        <p>Empowering citizens to improve their city by reporting civic issues quickly and efficiently.</p>
+      </div>
+      <div>
+        <h4 class="text-white font-bold mb-4">Quick Links</h4>
+        <ul class="space-y-2">
+          <li><a href="/" class="hover:text-white">Home</a></li>
+          <li><a href="/your_issues" class="hover:text-white">Your Reported Issues</a></li>
+          <li><a href="/track_recent" class="hover:text-white">Track Recent Issues</a></li>
+          <li><a href="/solved" class="hover:text-white">Problem Solved</a></li>
+          <li><a href="/about" class="hover:text-white">About</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="text-white font-bold mb-4">Contact Us</h4>
+        <p>Email: support@civicconnect.com</p>
+        <p>Phone: +91 9876543210</p>
+        <div class="flex space-x-4 mt-4">
+          <a href="#" class="hover:text-white">Facebook</a>
+          <a href="#" class="hover:text-white">Twitter</a>
+          <a href="#" class="hover:text-white">Instagram</a>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mt-8 text-gray-500 text-sm">
+      &copy; 2025 Civic Issue Reporting. All rights reserved.
+    </div>
+  </footer>
+
+</body>
+</html>

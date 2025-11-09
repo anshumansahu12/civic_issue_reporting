@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Report an Issue</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <div class="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-8 mt-10">
+    <h2 class="text-3xl font-bold text-center mb-6">Report an Issue</h2>
+
+    <!-- NOTE: form uses multipart so files are posted -->
+    <form id="reportForm" action="/report" method="POST" enctype="multipart/form-data" class="space-y-6">
+
+      <!-- Images -->
+      <div>
+        <label class="block mb-2 font-semibold">Upload Images (3 angles)</label>
+        <input id="imagesInput" type="file" name="images" accept="image/*" multiple required class="w-full border rounded p-2" onchange="previewImages(event)">
+        <p class="text-sm text-gray-500 mt-1">Please upload minimum 3 images from different angles.</p>
+
+        <!-- previews -->
+        <div id="preview-container" class="flex gap-3 mt-3 flex-wrap"></div>
+      </div>
+
+      <!-- Location -->
+      <div>
+        <label class="block mb-2 font-semibold">Location</label>
+        <div class="flex gap-2">
+          <input type="text" id="address_display" class="w-full border rounded p-2" placeholder="Address will appear here" readonly>
+          <button type="button" onclick="getLocation()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Auto Fetch</button>
+        </div>
+        <p id="locHelp" class="text-sm text-gray-500 mt-2">Click Auto Fetch → allow location. Form will accept only Nagpur locations.</p>
+      </div>
+
+      <!-- Hidden inputs to send lat,lng,address to server -->
+      <input type="hidden" name="lat" id="lat">
+      <input type="hidden" name="lng" id="lng">
+      <input type="hidden" name="address" id="address">
+
+      <!-- Category -->
+      <div>
+        <label class="block mb-2 font-semibold">Issue Category</label>
+        <select name="category" id="category" class="w-full border rounded p-2">
+          <option value="">-- Select Category --</option>
+          <option value="Garbage">Garbage</option>
+          <option value="Streetlight">Streetlight</option>
+          <option value="Road / Potholes">Road / Potholes</option>
+          <option value="Water Supply">Water Supply</option>
+          <option value="Drainage">Drainage</option>
+          <option value="Other">Other</option>
+        </select>
+        <div class="mt-2 flex gap-2">
+          <button type="button" onclick="autoCategory()" class="px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700">Auto Detect Category (AI)</button>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block mb-2 font-semibold">Description</label>
+        <textarea name="description" id="description" rows="4" class="w-full border rounded p-2"></textarea>
+        <button type="button" onclick="autoDescribe()" class="mt-2 px-3 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Auto Generate Description</button>
+      </div>
+
+      <!-- Submit -->
+      <div>
+        <button id="submitBtn" type="submit" disabled class="w-full bg-gray-400 text-white py-3 rounded-lg">Submit Issue (Enable after valid Nagpur location)</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Download Section -->
+  <section class="bg-indigo-600 text-white py-12 mt-10">
+    <div class="max-w-5xl mx-auto text-center">
+      <h2 class="text-2xl font-bold mb-4">Get the App for Easy Reporting</h2>
+      <a href="#" class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">Download for Android</a>
+    </div>
+  </section>
+
+<script>
+  // preview images into small cards
+  function previewImages(e) {
+    const container = document.getElementById('preview-container');
+    container.innerHTML = '';
+    const files = e.target.files;
+    for (let i=0; i<files.length; i++){
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const card = document.createElement('div');
+        card.className = 'w-28 h-28 border rounded overflow-hidden shadow';
+        card.innerHTML = `<img src="${ev.target.result}" class="w-full h-full object-cover">`;
+        container.appendChild(card);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // geolocation + reverse geocode to check Nagpur
+  async function getLocation() {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.classList.remove('bg-blue-600');
+    submitBtn.classList.add('bg-gray-400');
+
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported by your browser.');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('Reverse geocode failed');
+
+        const data = await resp.json();
+        const display = data.display_name || '';
+        const addr = data.address || {};
+        const normalized = [
+          addr.city, addr.town, addr.village, addr.county, addr.state
+        ].filter(Boolean).join(', ').toLowerCase();
+
+        document.getElementById('address_display').value = display;
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lon;
+        document.getElementById('address').value = display;
+
+        const isNagpur = display.toLowerCase().includes('nagpur') || normalized.includes('nagpur');
+
+        if (!isNagpur) {
+          alert('Location appears outside Nagpur. Upload blocked.');
+          document.getElementById('locHelp').textContent = 'Location not in Nagpur — reporting disabled.';
+          submitBtn.disabled = true;
+        } else {
+          document.getElementById('locHelp').textContent = 'Location verified as Nagpur. You can submit the issue.';
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('bg-gray-400');
+          submitBtn.classList.add('bg-blue-600');
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert('Could not fetch address. Try again.');
+      }
+
+    }, (err) => {
+      console.error(err);
+      alert('Permission denied or unable to fetch location.');
+    }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0});
+  }
+
+  // AI Category + Description integration with backend
+  async function autoCategory() {
+    const fileInput = document.getElementById("imagesInput");
+    if (!fileInput.files.length) {
+      alert("Upload an image first!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+
+    const resp = await fetch("/ai/describe", { method: "POST", body: formData });
+    const data = await resp.json();
+    if (data.category) {
+      document.getElementById("category").value = data.category;
+      if (data.description) {
+        document.getElementById("description").value = data.description;
+      }
+    } else {
+      alert("AI failed to detect.");
+    }
+  }
+
+  async function autoDescribe() {
+    const fileInput = document.getElementById("imagesInput");
+    if (!fileInput.files.length) {
+      alert("Upload an image first!");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+
+    const resp = await fetch("/ai/describe", { method: "POST", body: formData });
+    const data = await resp.json();
+    if (data.description) {
+      document.getElementById("description").value = data.description;
+    } else {
+      alert("AI failed to generate description.");
+    }
+  }
+</script>
+</body>
+</html>
